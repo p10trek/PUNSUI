@@ -43,6 +43,7 @@
 <script>
 import {LOGIN} from "@/store/actions.type";
 import {mapState} from "vuex";
+import JwtService from "@/common/jwt.service";
 
 export default {
   name: "Login",
@@ -64,6 +65,10 @@ export default {
       errors: state => state.auth.errors
     })
   },
+  created() {
+    JwtService.destroyAccessToken();
+    JwtService.destroyRefreshToken();
+  }
 }
 </script>
 
