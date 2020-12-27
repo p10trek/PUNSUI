@@ -31,7 +31,6 @@ const ApiService = {
 
     setResponseInterceptor() {
         Vue.axios.interceptors.response.use(
-
             response => response,
 
             async error => {
@@ -51,27 +50,27 @@ const ApiService = {
 
                 } else if (error.response.status === 401 || error.response.status === 403) {
 
-                    const response = this.post( "Authentication/RefreshToken", {
-                        refreshToken: JwtService.getRefreshToken()
-                    });
+                    const refreshToken = JwtService.getRefreshToken();
+                    if (refreshToken != null) {
+                        this.post("Authentication/RefreshToken", {refreshToken})
+                            .then(({data}) => {
+                                JwtService.saveAccessToken(data.data.accessToken)
+                                JwtService.saveRefreshToken(data.data.refreshToken)
 
-                    if (response.success) {
-                        JwtService.saveAccessToken(response.data.accessToken)
-                        JwtService.saveAccessToken(response.data.refreshToken)
-
-                        // store.dispatch("setSession", {
-                        //     accessToken: response.data.accessToken,
-                        //     refreshToken: response.data.refreshToken
-                        // });
-
-                        const result = await axios.request(error.config);
-                        return result;
+                                axios.request(error.config)
+                                    .then(({data}) => {
+                                        return data;
+                                    })
+                                    .catch((error) => {
+                                        console.log(error)
+                                    })
+                            })
+                            .catch(() => {
+                                router.push({
+                                    name: "login"
+                                });
+                            })
                     }
-
-                    await router.push({
-                        name: "Login"
-                    });
-
                 } else if (error.response === 400) {
                     JwtService.destroyAccessToken()
                     JwtService.destroyRefreshToken()

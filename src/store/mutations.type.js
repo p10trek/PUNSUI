@@ -1,0 +1,13 @@
+export const PURGE_AUTH = "logOut";
+export const SET_USER = "setUser";
+export const SET_ERROR = "setError";
+export const SET_GAME = "setGame";
+export const SET_GAMES = "setGames";
+export const PURGE_GAME = "purgePlayers";
+export const PURGE_GAMES = "purgeGames";
+export const SET_ROOMS = "setRooms";
+export const PURGE_ROOMS = "purgeRooms";
+export const SET_PLAYERS = "setPlayers";
+export const PURGE_PLAYERS = "purgePlayers";
+export const SET_PASSWORDS_CATEGORIES = 'setPasswordsCategories';
+export const PURGE_PASSWORDS_CATEGORIES = 'purgePasswordsCategories';

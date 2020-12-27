@@ -1,15 +1,23 @@
 import ApiService from "@/common/api.service";
-import {LOGIN, SET_USER, SET_ERROR, REGISTER} from "./actions.type";
+import {LOGIN, REGISTER, LOGOUT, FETCH_USER} from "./actions.type";
+import {SET_USER, SET_ERROR, PURGE_AUTH} from "@/store/mutations.type";
 import JwtService from "@/common/jwt.service";
 
 const state = {
     user: {},
-    errors: null
+    errors: null,
+    isAuthenticated: !!JwtService.getRefreshToken()
 };
 
 const getters = {
     getUser(state) {
         return state.user;
+    },
+    isAuthenticated(state) {
+        return state.isAuthenticated;
+    },
+    getUserId(state) {
+        return state.user.id;
     }
 };
 
@@ -19,6 +27,8 @@ const actions = {
         return new Promise(resolve => {
             ApiService.post("Authentication/Register", credentials)
                 .then(({data}) => {
+                    JwtService.saveAccessToken(data.data.accessToken)
+                    JwtService.saveRefreshToken(data.data.refreshToken)
                     resolve(data)
                 }).catch(({data}) => {
                 JwtService.destroyAccessToken()
@@ -32,10 +42,8 @@ const actions = {
         return new Promise(resolve => {
             ApiService.post("Authentication/Login", credentials)
                 .then(({data}) => {
-                    console.log(data)
                     JwtService.saveAccessToken(data.data.accessToken)
                     JwtService.saveRefreshToken(data.data.refreshToken)
-                    context.commit(SET_USER, data.data)
                     resolve(data)
                 }).catch(({data}) => {
                 JwtService.destroyAccessToken()
@@ -44,7 +52,35 @@ const actions = {
                 context.commit(SET_ERROR, data.message)
             })
         })
-    }
+    },
+
+    [LOGOUT](context) {
+        return new Promise(resolve => {
+            const refreshToken = JwtService.getRefreshToken();
+            ApiService.post("Authentication/RevokeToken", {refreshToken})
+                .catch(({data}) =>{
+                    console.log(data);
+                })
+                .then(() => {
+                    JwtService.destroyAccessToken()
+                    JwtService.destroyRefreshToken()
+                    context.commit(PURGE_AUTH)
+                    resolve()
+                })
+            })
+    },
+
+    [FETCH_USER](context) {
+        return new Promise(resolve => {
+            ApiService.post("Authentication/FetchUser")
+                .then(({data}) => {
+                    context.commit(SET_USER, data.data.user);
+                    resolve(data)
+                }).catch(({data}) => {
+                console.log(data)
+            })
+        })
+    },
 }
 
 const mutations = {
@@ -53,6 +89,10 @@ const mutations = {
     },
     [SET_USER](state, user) {
         state.user = user
+    },
+    [PURGE_AUTH](state) {
+        state.user = null;
+        state.errors = null;
     }
 }
 
