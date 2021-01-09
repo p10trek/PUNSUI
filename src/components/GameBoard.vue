@@ -21,28 +21,34 @@
       </div>
     </div>
 
-    <div v-if="!isGameStarted && !isGameEnded && isUserMaster && isMinimumTwoPlayers" class="row">
+    <div v-if="gameMasterCanStartGame" class="row">
       <div class="col-12">
         <button @click="this.startGame">Start Game</button>
       </div>
     </div>
 
-    <div v-if="isGameStarted && !isGameEnded && isUserShowingPlayer" class="row">
-      <h4>Choose category:</h4>
-      <div v-for="passwordCategory in passwordsCategories" :key="passwordCategory.id" class="col-12">
-        {{passwordCategory.name}}
+    <br><br>
 
+<!--    <div v-if="isGameStarted && !isGameEnded && isUserShowingPlayer" class="row justify-content-center">-->
+    <div v-if="isSelectCategoryStage" class="row justify-content-center">
+      <h4>Choose category:</h4>
+      <br><br>
+      <div v-for="passwordCategory in passwordsCategories" :key="passwordCategory.id" class="col-12">
+        <button @click="selectPasswordCategory(passwordCategory.id)">{{ passwordCategory.name }}</button>
+        <br><br>
       </div>
     </div>
 
-    <!--    <div v-if="playersAreAlreadyDownloaded" class="row">-->
-    <!--      <div class="col-12">-->
-    <!--        Select the player who guessed-->
-    <!--      </div>-->
-    <!--      <div v-for="player in playersWithoutUser" :key="player.id" class="col-12 my-2">-->
-    <!--        <button @click="this.selectNextPlayer(player.id)">{{ player.nick }}</button>-->
-    <!--      </div>-->
-    <!--    </div>-->
+
+    <div v-if="isShowingStage" class="row">
+      <div class="col-12">
+        <h2>Show password: {{password}}</h2>
+        <h2> Select the player who guessed</h2>
+      </div>
+      <div v-for="player in playersWithoutUser" :key="player.id" class="col-12 my-2">
+        <button @click="this.selectNextPlayer(player.id)">{{ player.nick }}</button>
+      </div>
+    </div>
 
   </div>
 </template>
@@ -56,8 +62,10 @@ export default {
   data() {
     return {
       message: '',
-      //userIsShowingPlayer: false,
       userInGame: false,
+      isSelectCategoryStage: false,
+      isShowingStage: false,
+      password: ''
     }
   },
   computed: {
@@ -70,7 +78,7 @@ export default {
       gameMasterId: "getGameMasterId",
       userId: "getUserId"
     }),
-    playersWithoutUser: function () {
+    playersWithoutUser() {
       return this.players.filter(x => x.id !== this.user.id)
     },
     playersAreAlreadyDownloaded() {
@@ -104,10 +112,10 @@ export default {
       return false;
     },
     showingPlayer() {
-      if (this.players !== undefined && this.players !== null && this.players >=2 && this.game !== null){
+      if (this.players !== undefined && this.players !== null && this.players >= 2 && this.game !== null) {
         const player = this.players.find(x => x.id === this.game.showingPlayerId);
         console.log("player: " + player);
-        if (player !== null){
+        if (player !== null) {
           return player.nick;
         }
       }
@@ -118,6 +126,9 @@ export default {
         return this.user.id === this.game.showingPlayerId;
       }
       return false;
+    },
+    gameMasterCanStartGame() {
+      return !this.isGameStarted && !this.isGameEnded && this.isUserMaster && this.isMinimumTwoPlayers;
     }
   },
   methods: {
@@ -184,6 +195,12 @@ export default {
     },
     fetchPlayers() {
       this.$store.dispatch(FETCH_PLAYERS, this.gameId);
+    },
+    selectPasswordCategory(id) {
+      const passwords = this.passwordsCategories.find(x => x.id === id).passwords;
+      this.password = passwords[Math.floor(Math.random() * passwords.length)].name;
+      this.isSelectCategoryStage = false;
+      this.isShowingStage = true;
     }
   },
   created() {
