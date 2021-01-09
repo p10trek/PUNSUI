@@ -1,5 +1,10 @@
 import ApiService from "@/common/api.service";
-import {CREATE_GAME, FETCH_GAME, FETCH_PASSWORD_CATEGORIES, FETCH_PLAYERS} from "@/store/actions.type";
+import {
+    CREATE_GAME,
+    FETCH_GAME,
+    FETCH_PASSWORD_CATEGORIES,
+    FETCH_PLAYERS
+} from "@/store/actions.type";
 import {
     SET_GAME,
     PURGE_GAME,
@@ -10,7 +15,7 @@ import {
 
 const state = {
     players: [],
-    passwordsCategories: [],
+    passwordCategories: [],
     game: {}
 }
 
@@ -25,7 +30,7 @@ const getters = {
         return state.game.id;
     },
     getPasswordCategories(state) {
-        return state.passwordsCategories
+        return state.passwordCategories
     },
     getGame(state) {
         return state.game;
@@ -58,7 +63,7 @@ const actions = {
         return new Promise(resolve => {
             ApiService.get("Games/FetchPlayers")
                 .then(({data}) => {
-                    context.commit(SET_PLAYERS, data.data.players)
+                    context.commit(SET_PLAYERS, data.data)
                     resolve(data)
                 }).catch(({data}) => {
                 console.log(data)
@@ -87,13 +92,13 @@ const mutations = {
         state.game = null;
     },
     [SET_PASSWORDS_CATEGORIES](state, data) {
-        state.passwordsCategories = data.passwordsCategories;
+        state.passwordCategories = data.passwordCategories;
     },
     [PURGE_PASSWORDS_CATEGORIES](state) {
-        state.passwordsCategories = null;
+        state.passwordCategories = null;
     },
     [SET_PLAYERS](state, data) {
-        state.players = data;
+        state.players = data.players;
     },
     [PURGE_PLAYERS](state) {
         state.players = null;
